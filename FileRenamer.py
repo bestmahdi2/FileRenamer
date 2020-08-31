@@ -1,4 +1,5 @@
 import os
+import time
 from functools import partial
 from sys import argv,exit
 from os import sep, getcwd, chdir, listdir, walk, path
@@ -28,6 +29,8 @@ class FileRenamer(Ui_MainWindow):
         self.Label_Number_2.setVisible(False)
         self.Label_Number_text.setVisible(False)
 
+        self.cancel = False         # for clicking on the cancel button
+
         # endregion
 
 
@@ -55,6 +58,8 @@ class FileRenamer(Ui_MainWindow):
         self.comboBox.addItem(file_path.replace("/",sep).replace("\\",sep))
 
     def ButtonRename(self):
+        self.Error.setText("")
+        self.cancel = False
         FileLoc = self.comboBox.currentText()
         Files = []
 
@@ -70,16 +75,19 @@ class FileRenamer(Ui_MainWindow):
         try:
             self.comboBox.setStyleSheet("color:yellow;")
             chdir(FileLoc)
-            countnew = True
+            DirExist = True
         except OSError:
             self.comboBox.setStyleSheet("color:red")
             self.comboBox.setCurrentText("There is no such a directory")
-            countnew = False
+            DirExist = False
 
         # region Shows
         self.Label_Number.setVisible(True)
         self.Label_Number_2.setVisible(True)
         self.Label_Number_text.setVisible(True)
+        self.Label_Progress_text.setVisible(True)
+        self.progressBar.setVisible(True)
+        self.Label_Progress_Done_text.setVisible(False)
         # endregion
 
         # region Files:
@@ -104,7 +112,12 @@ class FileRenamer(Ui_MainWindow):
                 FilesR = [i for i in Files if self.lineEdit_Common.displayText() in i[i.rfind(sep):].replace(sep, "")]
             # endregion
 
-        if countnew:
+        self.progressBar.setMaximum(len(FilesR))
+
+
+        #region tabs
+
+        if DirExist:
             self.Label_Number_2.setText(str(len(FilesR)))
             if FilesR != []:
 
@@ -128,16 +141,33 @@ class FileRenamer(Ui_MainWindow):
                                 else:
                                     delete = name[name.rfind(From):name.rfind(To)].replace(From, "")
 
-                            # self.lineEdit_Preview_R.setText(
-                            #     FilesR[0][FilesR[0].rfind(sep):].replace(delete, "").replace(sep, ""))
 
                     else:
-                            delete = self.lineEdit_Delete.displayText()
-                            # self.lineEdit_Preview_R.setText(
-                            #     FilesR[0][FilesR[0].rfind(sep):].replace(delete, "").replace(sep, ""))
+                        name = FilesR[0][FilesR[0].rfind(sep):].replace(sep, "")
+                        delete = self.lineEdit_Delete.displayText()
 
+                    progress = 0
                     for file in FilesR:
-                        os.rename(file,file.replace(delete,""))
+                        QtWidgets.QApplication.processEvents()
+                        nameOld = file[file.rfind(sep):].replace(sep, "")
+                        nameNew = nameOld.replace(delete,"")
+                        progress += 1
+                        # print(nameOld +"  "+ nameNew)
+                        if self.cancel != True:
+                            try:
+                                os.rename(file,file.replace(nameOld,nameNew))
+                            except FileExistsError:
+                                self.Error.setText("Be sure about the files not being used by another program")
+                            except OSError:
+                                self.Error.setText("Be sure about the files not being used by another program")
+
+                            self.progressBar.setProperty("value",progress)
+                        else:
+                            break
+
+                        time.sleep(0.5)
+
+                    self.Label_Progress_Done_text.setVisible(True)
 
 
                 if self.tabWidget.currentIndex() == 1:      # tab_rename
@@ -165,14 +195,31 @@ class FileRenamer(Ui_MainWindow):
                             re_from = self.lineEdit_Rename_From.displayText()
                         re_to = self.lineEdit_Rename_To.displayText()
 
-                        # self.lineEdit_Preview_R.setText(
-                        #     FilesR[0][FilesR[0].rfind(sep):].replace(re_from, re_to).replace(sep, ""))
 
+                        progress = 0
                         for file in FilesR:
-                            try:
-                                os.rename(file,file.replace(re_from,re_to))
-                            except :
-                                self.lineEdit_Preview_O.setText("Be sure about patterns and files.")
+                            QtWidgets.QApplication.processEvents()
+                            name = file[file.rfind(sep):].replace(sep, "")
+                            delete = name.replace(re_from, re_to)
+                            progress += 1
+
+                            if self.cancel != True:
+                                try:
+                                    os.rename(file,file.replace(name,delete))
+                                except FileExistsError:
+                                    self.Error.setText("Be sure about patterns and files.")
+                                except OSError:
+                                    self.Error.setText("Be sure about the files not being used by another program")
+                                # except :
+                                #     self.Error.setText("Be sure about patterns and files.")
+
+                                self.progressBar.setProperty("value",progress)
+                            else:
+                                break
+
+                            time.sleep(0.5)
+
+                        self.Label_Progress_Done_text.setVisible(True)
 
 
                 if self.tabWidget.currentIndex() == 2:      # tab_sufix
@@ -180,15 +227,29 @@ class FileRenamer(Ui_MainWindow):
                     prefix = self.lineEdit_addPre.displayText()
                     suffix = self.lineEdit_addSuf.displayText()
 
+                    progress = 0
                     for file in FilesR:
+                        QtWidgets.QApplication.processEvents()
+                        progress += 1
 
                         name = file[file.rfind(sep):].replace(sep, "")
                         typename = name[name.rfind(".", len(name) - 5):].replace(".", "")
 
                         to_name = prefix + name[:name.rfind(".", len(name) - 5)].replace(".", "") + suffix + "." + typename
+                        if self.cancel != True:
+                            try:
+                                os.rename(file,file.replace(name,"") + to_name)
+                            except FileExistsError:
+                                self.Error.setText("Be sure about patterns and files.")
+                            except OSError:
+                                self.Error.setText("Be sure about the files not being used by another program")
+                            self.progressBar.setProperty("value", progress)
+                        else:
+                            break
 
-                        os.rename(file,file.replace(name,"") + to_name)
+                        time.sleep(0.5)
 
+                    self.Label_Progress_Done_text.setVisible(True)
 
                 if self.tabWidget.currentIndex() == 3:      # tab_mixed
 
@@ -199,9 +260,12 @@ class FileRenamer(Ui_MainWindow):
 
                     # print(FilesR)
 
+                    progress = 0
                     for file in FilesR:
+                        QtWidgets.QApplication.processEvents()
                         name = file[file.rfind(sep):].replace(sep, "")
                         typename = name[name.rfind(".", len(name) - 5):].replace(".", "")
+                        progress += 1
 
                         # region Rename
                         if self.checkBox_Select_3.isChecked():
@@ -228,17 +292,28 @@ class FileRenamer(Ui_MainWindow):
                         re_to = self.lineEdit_Rename_To_2.displayText()
                         # endregion
 
-                        try:
+                        if self.cancel != True:
+                            try:
+                                to_name = prefix + name[:name.rfind(".", len(name) - 5)].replace(".", "").replace(re_from,
+                                                                                                                  re_to).replace(
+                                    sep, "") + suffix + "." + typename
+                                # print(file + "\n" + to_name)
+                                os.rename(file, file.replace(name, "") + to_name)
+                            except FileExistsError:
+                                self.Error.setText("Be sure about patterns and files.")
+                            except OSError:
+                                self.Error.setText("Be sure about the files not being used by another program")
+                            except:
+                                self.Error.setText("Be sure about using both Rename and Prefix/Suffix together.")
 
-                            to_name = prefix + name[:name.rfind(".", len(name) - 5)].replace(".", "").replace(re_from,
-                                                                                                              re_to).replace(
-                                sep, "") + suffix + "." + typename
-                            # print(file + "\n" + to_name)
-                            os.rename(file, file.replace(name, "") + to_name)
+                            self.progressBar.setProperty("value", progress)
+                        else:
+                            break
+                        time.sleep(0.5)
 
-                        except:
-                            self.lineEdit_Preview_O.setText(
-                                "Be sure about using both Rename and Prefix/Suffix together.")
+                    self.Label_Progress_Done_text.setVisible(True)
+
+
 
 
                 if self.tabWidget.currentIndex() == 4:      # tab_advanced
@@ -246,9 +321,12 @@ class FileRenamer(Ui_MainWindow):
                     prefix = self.lineEdit_addPre_3.displayText()
                     suffix = self.lineEdit_addSuf_3.displayText()
 
+                    progress = 0
                     for file in FilesR:
+                        QtWidgets.QApplication.processEvents()
                         name = file[file.rfind(sep):].replace(sep, "")
                         typename = name[name.rfind(".", len(name) - 5):].replace(".", "")
+                        progress += 1
 
                         From = self.lineEdit_From_4.displayText() if self.lineEdit_From_4.displayText() != "" else name[0]
                         To = self.lineEdit_To_4.displayText() if self.lineEdit_To_4.displayText() != "" else name[-1]
@@ -272,27 +350,47 @@ class FileRenamer(Ui_MainWindow):
 
                         FinSelect = str(prefix + select + suffix)
 
-                        if self.checkBox_paste_beg.isChecked():
-                            os.rename(file,file.replace(name,"") + FinSelect+name_)
+                        if self.cancel != True:
+                            try:
+                                if self.checkBox_paste_beg.isChecked():
+                                    os.rename(file,file.replace(name,"") + FinSelect+name_)
 
+                                else:
+                                    to_name = name_[:name_.rfind(".", len(name_) - 5)].replace(".", "") + FinSelect + "." + typename
+                                    os.rename(file, file.replace(name_, "") + to_name)
+                            except FileExistsError:
+                                self.Error.setText("Be sure about patterns and files.")
+                            except OSError:
+                                self.Error.setText("Be sure about the files not being used by another program")
+
+                            self.progressBar.setProperty("value", progress)
                         else:
-                            to_name = name_[:name_.rfind(".", len(name_) - 5)].replace(".", "") + FinSelect + "." + typename
-                            os.rename(file, file.replace(name_, "") + to_name)
+                            break
+                        time.sleep(0.5)
+                    self.Label_Progress_Done_text.setVisible(True)
 
             else:
-                self.lineEdit_Preview_O.setText("There is no file with this pattern.")
+                self.Error.setText("There is no file with this pattern.")
                 self.lineEdit_Preview_R.setText("")
 
             if FilesR != []:
                 self.lineEdit_Preview_O.setText(FilesR[0][FilesR[0].rfind(sep):].replace(sep, ""))
 
+
+
+        #endregion
     def ButtonCancel(self):
-        pass
+        self.progressBar.setProperty("value",0)
+        self.Error.setText("The Operation Canceled")
+        self.cancel = True
 
     def ButtonReset(self):
+        # self.
+        self.Error.setText("")
         pass
 
     def ButtonPreview(self):
+        self.Error.setText("")
         FileLoc = self.comboBox.currentText()
         Files = []
 
@@ -307,11 +405,11 @@ class FileRenamer(Ui_MainWindow):
         try:
             self.comboBox.setStyleSheet("color:yellow;")
             chdir(FileLoc)
-            countnew = True
+            DirExist = True
         except OSError:
             self.comboBox.setStyleSheet("color:red")
             self.comboBox.setCurrentText("There is no such a directory")
-            countnew = False
+            DirExist = False
 
         # region Shows
         self.Label_Number.setVisible(True)
@@ -339,9 +437,9 @@ class FileRenamer(Ui_MainWindow):
                 FilesR = [i for i in Files if "." + self.lineEdit_Common.displayText() in i[i.rfind(sep):].replace(sep, "")]
             else:
                 FilesR = [i for i in Files if self.lineEdit_Common.displayText() in i[i.rfind(sep):].replace(sep, "")]
-        # endregion
+        # endregionS
 
-        if countnew:
+        if DirExist:
             self.Label_Number_2.setText(str(len(FilesR)))
             if FilesR != []:
 
@@ -447,7 +545,7 @@ class FileRenamer(Ui_MainWindow):
                     try:
                         self.lineEdit_Preview_R.setText(prefix + name[:name.rfind(".", len(name) - 5)].replace(".", "").replace(re_from, re_to).replace(sep, "") + suffix + "." + typename)
                     except:
-                        self.lineEdit_Preview_O.setText("Be sure about using both Rename and Prefix/Suffix together.")
+                        self.Error.setText("Be sure about using both Rename and Prefix/Suffix together.")
 
                 if self.tabWidget.currentIndex() == 4:      # tab_advanced
                     name = FilesR[0][FilesR[0].rfind(sep):].replace(sep, "")
@@ -486,7 +584,7 @@ class FileRenamer(Ui_MainWindow):
                                                         FinSelect + "." +typename)
 
             else:
-                self.lineEdit_Preview_O.setText("There is no file with this pattern.")
+                self.Error.setText("There is no file with this pattern.")
                 self.lineEdit_Preview_R.setText("")
 
             if FilesR != []:

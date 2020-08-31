@@ -1,0 +1,5 @@
+Pyuic5 -x -o .\ProgramFile\FileRenamerQT.py .\ProgramFile\FileRenamerQT.ui
+
+Pyuic5 -x -o .\ProgramFile\Help.py .\ProgramFile\Help.ui
+
+pyinstaller .\FileRenamer.py --name FileRenamer.Win64 --onefile --noconsole --icon=.\edit.ico
