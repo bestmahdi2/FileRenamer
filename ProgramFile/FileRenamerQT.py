@@ -1535,15 +1535,16 @@ class Ui_MainWindow(object):
         MainWindow.setTabOrder(self.checkBox_paste_beg, self.checkBox_paste_end)
         MainWindow.setTabOrder(self.checkBox_paste_end, self.lineEdit_addPre_3)
         MainWindow.setTabOrder(self.lineEdit_addPre_3, self.lineEdit_addSuf_3)
-        MainWindow.setTabOrder(self.lineEdit_addSuf_3, self.lineEdit_Preview_O)
-        MainWindow.setTabOrder(self.lineEdit_Preview_O, self.lineEdit_Preview_R)
-        MainWindow.setTabOrder(self.lineEdit_Preview_R, self.Button_Rename)
+        MainWindow.setTabOrder(self.lineEdit_addSuf_3, self.lineEdit_Del_char_From_Sel)
+        MainWindow.setTabOrder(self.lineEdit_Del_char_From_Sel, self.Button_Rename)
         MainWindow.setTabOrder(self.Button_Rename, self.Button_stop)
         MainWindow.setTabOrder(self.Button_stop, self.Button_reset)
         MainWindow.setTabOrder(self.Button_reset, self.Button_preview)
         MainWindow.setTabOrder(self.Button_preview, self.Button_preview_2)
-        MainWindow.setTabOrder(self.Button_preview_2, self.tabWidget)
-        MainWindow.setTabOrder(self.tabWidget, self.Button_help)
+        MainWindow.setTabOrder(self.Button_preview_2, self.Button_help)
+        MainWindow.setTabOrder(self.Button_help, self.lineEdit_Preview_O)
+        MainWindow.setTabOrder(self.lineEdit_Preview_O, self.lineEdit_Preview_R)
+        MainWindow.setTabOrder(self.lineEdit_Preview_R, self.tabWidget)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate

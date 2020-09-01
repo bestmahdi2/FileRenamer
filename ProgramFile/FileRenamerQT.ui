@@ -3518,15 +3518,16 @@
   <tabstop>checkBox_paste_end</tabstop>
   <tabstop>lineEdit_addPre_3</tabstop>
   <tabstop>lineEdit_addSuf_3</tabstop>
-  <tabstop>lineEdit_Preview_O</tabstop>
-  <tabstop>lineEdit_Preview_R</tabstop>
+  <tabstop>lineEdit_Del_char_From_Sel</tabstop>
   <tabstop>Button_Rename</tabstop>
   <tabstop>Button_stop</tabstop>
   <tabstop>Button_reset</tabstop>
   <tabstop>Button_preview</tabstop>
   <tabstop>Button_preview_2</tabstop>
-  <tabstop>tabWidget</tabstop>
   <tabstop>Button_help</tabstop>
+  <tabstop>lineEdit_Preview_O</tabstop>
+  <tabstop>lineEdit_Preview_R</tabstop>
+  <tabstop>tabWidget</tabstop>
  </tabstops>
  <resources/>
  <connections/>
