@@ -63,13 +63,14 @@ class FileRenamer(Ui_MainWindow):
         Files = []
 
         # region Except Files
-        Except = self.lineEdit_Except.displayText().replace(" , ", ",").replace(" ,", ",").replace(", ", "").replace(
+        Except = self.lineEdit_Except.displayText().replace(" , ", ",").replace(" ,", ",").replace(", ", ",").replace(
             "\"", "").replace("\'", "")
         # endregion
 
         if "," not in Except:
             Except += ","
         ExceptList = Except.split(",")
+        print(ExceptList)
 
         try:
             self.comboBox.setStyleSheet("color:yellow;")
